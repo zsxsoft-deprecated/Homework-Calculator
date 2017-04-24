@@ -199,12 +199,14 @@
     <ClInclude Include="BigInteger.h" />
     <ClInclude Include="Calculator.h" />
     <ClInclude Include="HugeInt.h" />
+    <ClInclude Include="HugeIntTest.h" />
     <ClInclude Include="InputParser.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Calculator.cpp" />
+    <ClCompile Include="HugeIntTest.cpp" />
     <ClCompile Include="InputParser.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="stdafx.cpp">

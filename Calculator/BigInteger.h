@@ -638,7 +638,7 @@ BigInteger<_MaxInt, _MaxSave>::~BigInteger<_MaxInt, _MaxSave>() {}
 
 template <size_t _MaxInt, int _MaxSave>
 void BigInteger<_MaxInt, _MaxSave>::FixZero() {
-	if (this->Length() == 1 && this->Data[0] == 0 && !this->IsPositive()) {
+	if (this->Length() == 0) {
 		this->positive = true;
 	}
 }

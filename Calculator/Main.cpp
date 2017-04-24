@@ -7,8 +7,11 @@
 #include <fstream>
 #include <string>
 #include "InputParser.h"
+#include "HugeIntTest.h"
 
 int main(int argc, char* argv[]) {
+
+	HugeIntTest::Test();
 	if (argc <= 2) {
 		InputParser::ParseInput(std::cin, std::cout, true);
 	}
