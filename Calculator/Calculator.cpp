@@ -36,6 +36,9 @@ Calculator::CharType Calculator::GetType(const char c) const {
 	if (c >= '0' && c <= (Radix >= 10 ? '9' : Radix + '0')) {
 		return DIGIT;
 	}
+	if (Radix > 10) {
+		if (c >= 'a' && c <= ('a' + Radix - 10 - 1)) return DIGIT;
+	}
 	if (c == '.') {
 		return DOT;
 	}
@@ -155,7 +158,7 @@ bool Calculator::DoCalculate(const CharData data) {
 		return DoCalculate<BigInteger<1, 7>>(data, item1, item2);
 	}
 	if (Radix == 16) {
-		return DoCalculate<BigInteger<2, 15>>(data, item1, item2);
+		return DoCalculate<BigInteger<1, 15>>(data, item1, item2);
 	}
 	if (Radix == 10) {
 		return DoCalculate<BigInteger<>>(data, item1, item2);
@@ -196,7 +199,7 @@ Calculator::Calculator(std::string data, int radix) : Radix(radix) {
 						ret = BigInteger<>(str).ToString();
 					}
 					else if (radix == 16) {
-						ret = BigInteger<2, 15>(str).ToString();
+						ret = BigInteger<1, 15>(str).ToString();
 					}
 					//BigInteger<>(str).ToString()
 					Output.push(ret);
@@ -224,6 +227,15 @@ Calculator::Calculator(std::string data, int radix) : Radix(radix) {
 				if (prevStatus != NONE && prevStatus != OPEN_BRACKET && prevStatus != DIGIT && prevStatus != DOT && prevStatus != SIGN) {
 					ThrowError("Unexpected digit", inputData);
 					return;
+				}
+				if (Radix > 10) {
+					if (c < '0') ThrowError("Unexpected digit", inputData);
+					if (c > '9') {
+						if (tolower(c) - 'a' + 10 >= Radix) ThrowError("Unexpected digit", inputData);
+					}
+				}
+				else {
+					if (c < '0' || c > '9') ThrowError("Unexpected digit", inputData);
 				}
 				digitBuffer << c;
 				break;

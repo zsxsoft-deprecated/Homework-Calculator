@@ -8,14 +8,14 @@ void InputParser::ParseInput(std::istream& in, std::ostream& out, bool prompt) {
 	bool settingRadix = false;
 	auto radix = 10;
 	while (!in.eof()) {
-		if (prompt) out << "> ";
+		if (prompt && !settingRadix) out << "> ";
 		in >> input;
 		if (input == "MODE") {
 			settingRadix = true;
 			continue;
 		}
 		if (settingRadix) {
-
+			settingRadix = false;
 			if (input == "10") {
 				radix = 10;
 				continue;
@@ -28,17 +28,11 @@ void InputParser::ParseInput(std::istream& in, std::ostream& out, bool prompt) {
 				radix = 8;
 				continue;
 			}
-			if (input == "16")
-			{
+			if (input == "16") {
 				radix = 16;
 				continue;
 			}
 		}
-		/*
-				if (input == "MODE 16") {
-					radix = 16;
-					continue;
-				}*/
 
 		auto ret = Calculator(input, radix);
 		if (!ret.HasError) {

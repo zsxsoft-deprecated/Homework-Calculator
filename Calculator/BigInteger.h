@@ -2,6 +2,8 @@
 #include <string>
 #include <vector>
 #include <algorithm>
+#include <array>
+
 template <int A, int B>
 struct get_power {
 	static const long value = A * get_power<A, B - 1>::value;
@@ -94,6 +96,8 @@ public:
 
 private:
 	bool positive = true;
+	const static int mapMaxSize = 36;
+	char asciiMap[mapMaxSize + 1] = "0123456789abcdefghijklmnopqrstuvwxyz";
 };
 
 template <size_t _MaxInt, int _MaxSave>
@@ -125,7 +129,13 @@ std::string BigInteger<_MaxInt, _MaxSave>::ToString() const {
 	std::string res = "";
 	auto len = Length();
 	for (auto i = 0; i < len; i++) {
-		auto part = std::to_string(Data[i]);
+		std::string part;
+		if (_MaxSave < mapMaxSize && Data[i] <= _MaxSave) {
+			part = asciiMap[Data[i]];
+		}
+		else {
+			part = std::to_string(Data[i]);
+		}
 		auto length = static_cast<int>(part.length());
 		while (length < _MaxInt && i < len - 1) part = "0" + part, length++;
 		res = part + res;
@@ -137,6 +147,8 @@ std::string BigInteger<_MaxInt, _MaxSave>::ToString() const {
 
 template <size_t _MaxInt, int _MaxSave>
 BigInteger<_MaxInt, _MaxSave> BigInteger<_MaxInt, _MaxSave>::operator=(const char* in) {
+
+	if (_MaxSave >= strlen(asciiMap) && _MaxInt == 1) throw std::exception("Radix >= 36");
 
 	auto l = static_cast<int>(strlen(in));
 	auto len = l / _MaxInt;
@@ -159,8 +171,27 @@ BigInteger<_MaxInt, _MaxSave> BigInteger<_MaxInt, _MaxSave>::operator=(const cha
 		auto k = i - maxInt + 1;
 		if (k < start) k = start;
 		for (auto j = k; j <= i; j++) {
-			if (in[j] < '0' || in[j] > '9') throw std::exception("Invalid input"); // @TODO
-			t = t * 10 + in[j] - '0';
+			auto c = in[j];
+			if (c >= 'a') {
+				t = t * 10 + c - 'a' + 10;
+			}
+			else {
+				t = t * 10 + c - '0';
+			}
+			// Ignore error check and let the caller check
+			/*
+				if (_MaxSave < 36) {
+					if (c < '0' || c > (_MaxSave >= 10 ? '9' : '0' + _MaxSave)) throw std::exception("Illegal digit.");
+					if (c > '9') {
+						c = tolower(c) - 'a' + 10;
+						if (_MaxSave < c) throw std::exception("Illegal digit.");
+					}
+				}
+				else {
+					if (c < '0' || c > '9') throw std::exception("Illegal digit.");
+				}
+			 */
+
 		}
 		Data.push_back(t > 0 ? t : -t);
 	}
@@ -194,8 +225,7 @@ BigInteger<_MaxInt, _MaxSave> BigInteger<_MaxInt, _MaxSave>::operator=(int num) 
 
 template <size_t _MaxInt, int _MaxSave>
 BigInteger<_MaxInt, _MaxSave> BigInteger<_MaxInt, _MaxSave>::operator=(const std::string num) {
-	const char *tmp;
-	tmp = num.c_str();
+	const char *tmp = num.c_str();
 	*this = tmp;
 	return *this;
 }
@@ -430,7 +460,6 @@ BigInteger<_MaxInt, _MaxSave> BigInteger<_MaxInt, _MaxSave>::operator-=(const Bi
 template <size_t _MaxInt, int _MaxSave>
 BigInteger<_MaxInt, _MaxSave> BigInteger<_MaxInt, _MaxSave>::operator*(const BigInteger<_MaxInt, _MaxSave>& num) const {
 	BigInteger<_MaxInt, _MaxSave> ret;
-	int temp, temp1;
 	auto length = Length();
 	auto rvalueLength = num.Length();
 	auto retLength = length + rvalueLength;
@@ -438,9 +467,9 @@ BigInteger<_MaxInt, _MaxSave> BigInteger<_MaxInt, _MaxSave>::operator*(const Big
 	for (auto i = 0; i < length; i++) {
 		int j, next = 0;
 		for (j = 0; j < rvalueLength; j++) {
-			temp = Data[i] * num.Data[j] + ret.Data[i + j] + next;
+			int temp = Data[i] * num.Data[j] + ret.Data[i + j] + next;
 			if (temp > _MaxSave) {
-				temp1 = temp - temp / (_MaxSave + 1) * (_MaxSave + 1);
+				auto temp1 = temp - temp / (_MaxSave + 1) * (_MaxSave + 1);
 				next = temp / (_MaxSave + 1);
 				ret.Data[i + j] = temp1;
 			}
@@ -555,10 +584,10 @@ BigInteger<_MaxInt, _MaxSave> BigInteger<_MaxInt, _MaxSave>::operator%(const Big
 }
 
 template <size_t _MaxInt, int _MaxSave>
-std::pair<size_t, int> BigInteger<_MaxInt, _MaxSave>::GetClassInfo() const
-{
+std::pair<size_t, int> BigInteger<_MaxInt, _MaxSave>::GetClassInfo() const {
 	return std::pair<auto, auto>(_MaxInt, _MaxSave);
 }
+
 
 template <size_t _MaxInt, int _MaxSave>
 BigInteger<_MaxInt, _MaxSave> BigInteger<_MaxInt, _MaxSave>::Pow(const BigInteger<_MaxInt, _MaxSave>& num) const {
@@ -594,9 +623,8 @@ BigInteger<_MaxInt, _MaxSave> BigInteger<_MaxInt, _MaxSave>::Sqrt()const {
 		return *this;
 
 	auto l = BigInteger<_MaxInt, _MaxSave>(0), r = *this;
-	BigInteger<_MaxInt, _MaxSave> mid;
 	while (r - l > 1) {
-		mid = (l + r) / 2;
+		BigInteger<_MaxInt, _MaxSave> mid = (l + r) / 2;
 		if (mid * mid > *this)
 			r = mid;
 		else
